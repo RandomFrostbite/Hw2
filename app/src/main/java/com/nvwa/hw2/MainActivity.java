@@ -23,10 +23,11 @@ import static java.lang.Math.random;
 
 public class MainActivity extends AppCompatActivity {
 
+    public static final String bookExtra = "Book";
     static public ArrayList<Book> myBooks;
     static {
         myBooks = new ArrayList<Book>();
-        myBooks.add( new Book("Half-Life 3", "Gabe Newell", "2203" ) );
+        myBooks.add( new Book("Half-Life 3", "Gabe Newell", "2203", "drawable://" + R.drawable.cover1 ) );
         myBooks.add( new Book("How to cook", "Elon Musk", "2015" ) );
         myBooks.add( new Book("Start business", "Donald Trump", "2000" ) );
     }
@@ -38,18 +39,23 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        ListAdapter la = new ArrayAdapter<Book>( this, android.R.layout.simple_list_item_1, android.R.id.text1, myBooks );
+        ListAdapter bookListAdapter = new ArrayAdapter<Book>( this, android.R.layout.simple_list_item_1, android.R.id.text1, myBooks );
         ListView books = (ListView)findViewById(R.id.books);
-        books.setAdapter(la);
+        books.setAdapter(bookListAdapter);
 
         FloatingActionButton addBook = (FloatingActionButton) findViewById(R.id.addBook);
         addBook.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Intent intent = new Intent( getApplicationContext(), CreateBookEntry.class );
+                startActivity(intent);
             }
         });
 
         if ( getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ) {
+            BookInfoFragment frag = (BookInfoFragment) getSupportFragmentManager().findFragmentById(R.id.bookInfo);
+            frag.displayTask(new Book("Title", "Author", "Release year"));
+
             FloatingActionButton removeBook = (FloatingActionButton) findViewById(R.id.removeBook);
             removeBook.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -57,7 +63,41 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         }
+
+        books.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if ( getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ) {
+                    BookInfoFragment frag = (BookInfoFragment)getSupportFragmentManager().findFragmentById(R.id.bookInfo);
+                    frag.displayTask( (Book)parent.getItemAtPosition(position) );
+                } else {
+                    Intent intent = new Intent( getApplicationContext(), BookActivity.class );
+                    Book tmp = (Book) parent.getItemAtPosition(position);
+                    intent.putExtra(bookExtra, tmp);
+                    startActivity(intent);
+                }
+            }
+        });
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        ListAdapter bookListAdapter = new ArrayAdapter<Book>( this, android.R.layout.simple_list_item_1, android.R.id.text1, myBooks );
+        ListView books = (ListView)findViewById(R.id.books);
+        books.setAdapter(bookListAdapter);
+        ((ArrayAdapter) bookListAdapter).notifyDataSetChanged();
+    }
+
+
+
+
+
+
+
+
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
