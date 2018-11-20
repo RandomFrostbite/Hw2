@@ -1,6 +1,8 @@
 package com.nvwa.hw2;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -17,19 +19,32 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import static java.lang.Math.random;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements DeleteDialog.NoticeDialogListener {
 
+    public static final String BOOKS_FILE = "com.nvwa.hw2.BooksFile";
+    public static final String NUM_BOOKS = "NumOfBooks";
+    public static final String TITLE = "title_";
+    public static final String AUTHOR = "author_";
+    public static final String DATE = "date_";
+    public static final String PIC = "pic_";
+
+    static public int selected_item = -1;
     public static final String bookExtra = "Book";
     static public ArrayList<Book> myBooks;
     static {
         myBooks = new ArrayList<Book>();
-        myBooks.add( new Book("Half-Life 3", "Gabe Newell", "2203", "drawable://" + R.drawable.cover1 ) );
-        myBooks.add( new Book("How to cook", "Elon Musk", "2015" ) );
-        myBooks.add( new Book("Start business", "Donald Trump", "2000" ) );
     }
 
     @Override
@@ -38,6 +53,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        readDataFromFile();
 
         ListAdapter bookListAdapter = new ArrayAdapter<Book>( this, android.R.layout.simple_list_item_1, android.R.id.text1, myBooks );
         ListView books = (ListView)findViewById(R.id.books);
@@ -54,12 +71,14 @@ public class MainActivity extends AppCompatActivity {
 
         if ( getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ) {
             BookInfoFragment frag = (BookInfoFragment) getSupportFragmentManager().findFragmentById(R.id.bookInfo);
-            frag.displayTask(new Book("Title", "Author", "Release year"));
+            frag.displayTask( new Book("", "", "") );
 
             FloatingActionButton removeBook = (FloatingActionButton) findViewById(R.id.removeBook);
             removeBook.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    DialogFragment newFragment = DeleteDialog.newInstance();
+                    newFragment.show( getSupportFragmentManager(), "DeleteDialogTag" );
                 }
             });
         }
@@ -67,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
         books.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                selected_item = position;
                 if ( getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ) {
                     BookInfoFragment frag = (BookInfoFragment)getSupportFragmentManager().findFragmentById(R.id.bookInfo);
                     frag.displayTask( (Book)parent.getItemAtPosition(position) );
@@ -74,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
                     Intent intent = new Intent( getApplicationContext(), BookActivity.class );
                     Book tmp = (Book) parent.getItemAtPosition(position);
                     intent.putExtra(bookExtra, tmp);
+
                     startActivity(intent);
                 }
             }
@@ -87,8 +108,56 @@ public class MainActivity extends AppCompatActivity {
         ListView books = (ListView)findViewById(R.id.books);
         books.setAdapter(bookListAdapter);
         ((ArrayAdapter) bookListAdapter).notifyDataSetChanged();
+        saveDataToFile();
     }
 
+    private void readDataFromFile() {
+        myBooks.clear();
+        String filename = "myBooks.txt";
+        String delim = ";";
+        FileInputStream inputStream;
+        try {
+            inputStream = openFileInput(filename);
+            BufferedReader reader = new BufferedReader( new FileReader( inputStream.getFD() ) );
+            String line;
+            while ( (line = reader.readLine() ) != null ) {
+                String bookTitle = line.substring( 0, line.indexOf(delim) );
+                line = line.substring( line.indexOf(delim) + 1 );
+                String bookAuthor = line.substring( 0, line.indexOf(delim) );
+                line = line.substring( line.indexOf(delim) + 1 );
+                String bookReleaseDate = line.substring( 0, line.indexOf(delim) );
+                line = line.substring( line.indexOf(delim) + 1 );
+                Book tmp = new Book(bookTitle, bookAuthor, bookReleaseDate, Integer.parseInt(line) );
+                myBooks.add(tmp);
+            }
+        } catch(FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    private void saveDataToFile() {
+        String filename = "myBooks.txt";
+        FileOutputStream outputStream;
+
+        try {
+            outputStream = openFileOutput( filename, Context.MODE_PRIVATE );
+            BufferedWriter writer = new BufferedWriter( new FileWriter( outputStream.getFD() ) );
+            String delim = ";";
+
+            for ( Integer i = 0; i < myBooks.size(); i++ ) {
+                Book tmp = myBooks.get(i);
+                String line = tmp.title + delim + tmp.author + delim + tmp.releaseDate + delim + tmp.picID;
+                writer.write( line );
+                writer.newLine();
+            }
+            writer.close();
+        } catch ( IOException ex ) {
+            ex.printStackTrace();
+        }
+    }
 
 
 
@@ -119,5 +188,21 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onDialogPositiveClick(DialogFragment dialog) {
+        myBooks.remove(selected_item);
+        ListAdapter bookListAdapter = new ArrayAdapter<Book>( this, android.R.layout.simple_list_item_1, android.R.id.text1, myBooks );
+        ListView books = (ListView)findViewById(R.id.books);
+        books.setAdapter(bookListAdapter);
+        ((ArrayAdapter) bookListAdapter).notifyDataSetChanged();
+        BookInfoFragment frag = (BookInfoFragment) getSupportFragmentManager().findFragmentById(R.id.bookInfo);
+        frag.displayTask( new Book("", "", "") );
+    }
+
+    @Override
+    public void onDialogNegativeClick(DialogFragment dialog) {
+
     }
 }

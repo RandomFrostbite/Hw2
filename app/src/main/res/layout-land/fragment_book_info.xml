@@ -9,20 +9,22 @@
 
     <ImageView
         android:id="@+id/bookCover"
-        android:layout_width="150dp"
-        android:layout_height="300dp"
-        android:layout_centerHorizontal="true"
+        android:layout_width="112dp"
+        android:layout_height="150dp"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="28dp"
         android:layout_marginTop="16dp" />
 
     <TextView
         android:id="@+id/bookTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/bookCover"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
+        android:layout_alignTop="@+id/bookCover"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="0dp"
 
+        android:layout_marginEnd="16dp"
+        android:layout_toEndOf="@+id/bookCover"
         android:text="@string/bookTitle"
         android:textAlignment="center" />
 
@@ -31,10 +33,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/bookTitle"
-        android:layout_marginStart="16dp"
+        android:layout_alignStart="@+id/bookTitle"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
 
+        android:layout_marginEnd="16dp"
         android:text="@string/bookAuthor"
         android:textAlignment="center" />
 
@@ -43,10 +46,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/bookAuthor"
-        android:layout_marginStart="16dp"
+        android:layout_alignStart="@+id/bookAuthor"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
 
+        android:layout_marginEnd="16dp"
         android:text="@string/bookReleaseDate"
         android:textAlignment="center" />
 

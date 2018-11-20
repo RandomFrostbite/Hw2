@@ -44,17 +44,16 @@ public class BookInfoFragment extends Fragment {
     }
 
     public void displayTask( Book book ) {
-        View displayedTaskView = getActivity().findViewById( R.id.BookInfoFragment );
-        displayedTaskView.setVisibility( View.VISIBLE );
+//        View displayedTaskView = getActivity().findViewById( R.id.BookInfoFragment );
+//        displayedTaskView.setVisibility( View.VISIBLE );
         ((TextView)getActivity().findViewById( R.id.bookTitle  ) ).setText( book.title );
         ((TextView)getActivity().findViewById( R.id.bookAuthor ) ).setText( book.author );
         ((TextView)getActivity().findViewById( R.id.bookReleaseDate ) ).setText( book.releaseDate );
         ImageView taskImage = (ImageView) getActivity().findViewById( R.id.bookCover );
-        if ( book.picPath != null && !book.picPath.isEmpty() ) {
-            Bitmap imageBitmap = BitmapFactory.decodeFile(book.picPath);
-            taskImage.setImageBitmap( imageBitmap );
+        if ( book.picID != 0 ) {
+            taskImage.setImageResource(book.picID);
         } else {
-            taskImage.setImageBitmap( null );
+            taskImage.setImageBitmap(null);
         }
     }
 }
